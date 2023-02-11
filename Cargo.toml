@@ -10,5 +10,7 @@ crate-type = ["rlib", "cdylib"]
 
 [features]
 default = []
+rpixel = ["extendr-api"]
 
 [dependencies]
+extendr-api = { optional = true, version = "*" }
