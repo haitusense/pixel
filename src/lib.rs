@@ -1,5 +1,5 @@
 #[cfg(feature="rpixel")]
-mod r;
+pub mod r;
 #[cfg(feature="rpixel")]
 pub use r::*;
 
