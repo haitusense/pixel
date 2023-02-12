@@ -1,9 +1,10 @@
-#[cfg(not(feature="rpixel"))]
-use pixel_proc::dummy as extendr;
+// #[cfg(not(feature="rpixel"))]
+// use pixel_proc::dummy as extendr;
 
 #[cfg(feature="rpixel")]
 use extendr_api::prelude::*;
 
+#[cfg(feature="rpixel")]
 #[extendr]
 pub fn rpixel_hello() -> &'static str {
   "Hello rpixel!"
@@ -15,13 +16,13 @@ extendr_module! {
   fn rpixel_hello;
 }
 
-#[cfg(not(feature="rpixel"))]
-#[cfg(test)]
-mod tests {
-  use crate::*;
+// #[cfg(not(feature="rpixel"))]
+// #[cfg(test)]
+// mod tests {
+//   use crate::*;
 
-  #[test]
-  fn it_works() {
-    println!("{}",rpixel_hello());
-  }
-}
+//   #[test]
+//   fn it_works() {
+//     println!("{}",rpixel_hello());
+//   }
+// }
