@@ -1,4 +1,4 @@
-#[cfg(not(eature="rpixel"))]
+#[cfg(not(feature="rpixel"))]
 use pixel_proc::dummy as extendr;
 
 #[cfg(feature="rpixel")]
