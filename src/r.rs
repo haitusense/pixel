@@ -15,7 +15,7 @@ extendr_module! {
   fn rpixel_hello;
 }
 
-
+#[cfg(not(feature="rpixel"))]
 #[cfg(test)]
 mod tests {
   use crate::*;
