@@ -1,7 +1,7 @@
 use extendr_api::prelude::*;
 
 
-#[cfg(feature="rpixel", extendr)]
+#[extendr]
 pub fn rpixel_hello() -> &'static str {
   "Hello rpixel!"
 }
