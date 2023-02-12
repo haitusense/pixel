@@ -1,6 +1,5 @@
-#[cfg(feature="rpixel")]
+
 pub mod r;
-#[cfg(feature="rpixel")]
 pub use r::*;
 
 pub fn type_of<T>(_: T) -> String {
@@ -79,5 +78,4 @@ impl <T> Pixel<T> where T: Clone + Copy + Default {
   }
 
 }
-
 

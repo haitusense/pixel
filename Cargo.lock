@@ -61,6 +61,15 @@ name = "pixel"
 version = "0.1.0"
 dependencies = [
  "extendr-api",
+ "pixel_proc",
+]
+
+[[package]]
+name = "pixel_proc"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
