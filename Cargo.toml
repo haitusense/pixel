@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-proc-macro = true
 crate-type = ["rlib", "cdylib"]
 
 [features]
@@ -14,6 +13,6 @@ default = []
 rpixel = ["extendr-api"]
 
 [dependencies]
-# pixel_proc = { path = "pixel_proc" }
-pixel_proc = { git = "https://github.com/pixel/pixel_proc/" }
+pixel_proc = { path = ".\pixel_proc" }
+# pixel_proc = { git = "https://github.com/pixel/pixel_proc/" }
 extendr-api = { optional = true, version = "*" }
