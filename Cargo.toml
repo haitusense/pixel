@@ -13,6 +13,5 @@ default = []
 rpixel = ["extendr-api"]
 
 [dependencies]
-pixel_proc = { path = ".\pixel_proc" }
-# pixel_proc = { git = "https://github.com/pixel/pixel_proc/" }
+pixel_proc = { path = "./pixel_proc" }
 extendr-api = { optional = true, version = "*" }
