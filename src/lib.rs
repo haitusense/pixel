@@ -1,6 +1,4 @@
-#[cfg(feature="rpixel")]
 pub mod r;
-#[cfg(feature="rpixel")]
 pub use r::*;
 
 pub fn type_of<T>(_: T) -> String {
