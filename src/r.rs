@@ -1,16 +1,13 @@
 // #[cfg(not(feature="rpixel"))]
 // use pixel_proc::dummy as extendr;
 
-#[cfg(feature="rpixel")]
 use extendr_api::prelude::*;
 
-#[cfg(feature="rpixel")]
 #[extendr]
 pub fn rpixel_hello() -> &'static str {
   "Hello rpixel!"
 }
 
-#[cfg(feature="rpixel")]
 extendr_module! {
   mod pixel;
   fn rpixel_hello;
