@@ -6,17 +6,11 @@ use extendr_api::prelude::*;
 use super::*;
 use rand::prelude::{Distribution, thread_rng};
 use rand_distr::Normal;
-
-#[extendr]
-pub fn rpixel_hello() -> &'static str {
-  "Hello rpixel!"
-}
+use std::path::{PathBuf};
 
 #[derive(Debug)]
 pub struct PixelI32{
   pixel: Pixel<i32>,
-  index_x : Vec<i32>,
-  index_y : Vec<i32>,
 }
 
 #[allow(dead_code)]
@@ -25,19 +19,8 @@ impl PixelI32 {
 
   pub fn new(width:i32, height:i32) -> Self {
     let p = Pixel::<i32>::create(width as usize,height as usize);
-    let mut w = vec![0i32; (width * height) as usize];
-    let mut h = vec![0i32;  (width * height) as usize];
-    for y in 0..height {
-      for x in 0..width {
-        let index = (x + y * width) as usize;
-        w[index] = x;
-        h[index] = y;
-      }
-    }
     Self {
       pixel: p,
-      index_x : w,
-      index_y : h,
     }
   }
 
@@ -55,28 +38,58 @@ impl PixelI32 {
   pub fn width(&self) -> i32 { self.pixel.width() as i32 }
   pub fn height(&self) -> i32 { self.pixel.height() as i32 }
 
-  pub fn get_c_v(&self) -> Vec<i32> { self.pixel.get_array().clone().to_vec() }
-  pub fn get_c_x(&self) -> Vec<i32> { self.index_x.clone() }
-  pub fn get_c_y(&self) -> Vec<i32> { self.index_y.clone() }
+  pub fn get_vec(&self) -> Vec<i32> { self.pixel.get_array().clone().to_vec() }
+  
+  pub fn get_index_x(&self) -> Vec<i32> {
+    let mut dst = vec![0i32; self.pixel.size()];
+    for y in 0..self.pixel.height() {
+      for x in 0..self.pixel.width() {
+        let index = x + y * self.pixel.width();
+        dst[index] = x as i32;
+      }
+    }
+    dst 
+  }
+  
+  pub fn get_index_y(&self) -> Vec<i32> {
+    let mut dst = vec![0i32; self.pixel.size()];
+    for y in 0..self.pixel.height() {
+      for x in 0..self.pixel.width() {
+        let index = x + y * self.pixel.width();
+        dst[index] = y as i32;
+      }
+    }
+    dst 
+  }
 
+  pub fn read_file(&mut self, path: &str, option: &str) {	
+    let path = PathBuf::from(path);
+    let src = binfile_to_u8(path).unwrap();
+    let offset = 64usize;
+
+    for i in 0..self.pixel.size() {
+      let buf = [src[offset + i*2+1], src[offset + i*2], 0, 0];
+      self.pixel[i] = i32::from_ne_bytes(buf);
+    }
+
+  }
+    
 }
-
 
 
 #[cfg(feature="rpixel")]
 extendr_module! {
   mod pixel;
-  fn rpixel_hello;
   impl PixelI32;
 }
 
-// #[cfg(not(feature="rpixel"))]
-// #[cfg(test)]
-// mod tests {
-//   use crate::*;
 
-//   #[test]
-//   fn it_works() {
-//     println!("{}",rpixel_hello());
-//   }
-// }
+#[cfg(test)]
+mod tests {
+  use crate::*;
+
+  #[test]
+  fn it_works() {
+
+  }
+}

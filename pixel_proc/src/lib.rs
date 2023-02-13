@@ -1,6 +1,11 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Item, ItemFn, Stmt};
+use syn::{parse_macro_input, ItemFn, Stmt};
+
+#[proc_macro_attribute]
+pub fn dummy(_attr: TokenStream, item: TokenStream) -> TokenStream {
+  item
+}
 
 #[proc_macro_attribute]
 pub fn trace(_attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -21,7 +26,3 @@ pub fn trace(_attr: TokenStream, item: TokenStream) -> TokenStream {
   gen.into()
 }
 
-#[proc_macro_attribute]
-pub fn dummy(_attr: TokenStream, item: TokenStream) -> TokenStream {
-  item
-}

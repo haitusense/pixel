@@ -18,3 +18,9 @@ extendr-api = { optional = true, version = "*" }
 
 rand = '*'
 rand_distr = '*'
+
+nom = "*"
+num-traits = "*"
+num-derive = "*"
+
+anyhow = "*"
