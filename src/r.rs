@@ -13,7 +13,7 @@ pub fn rpixel_hello() -> &'static str {
 }
 
 #[derive(Debug)]
-struct PixelI32{
+pub struct PixelI32{
   pixel: Pixel<i32>,
   index_x : Vec<i32>,
   index_y : Vec<i32>,
@@ -23,7 +23,7 @@ struct PixelI32{
 #[extendr]
 impl PixelI32 {
 
-  fn new(width:i32, height:i32) -> Self {
+  pub fn new(width:i32, height:i32) -> Self {
     let p = Pixel::<i32>::create(width as usize,height as usize);
     let mut w = vec![0i32; (width * height) as usize];
     let mut h = vec![0i32;  (width * height) as usize];
@@ -41,7 +41,7 @@ impl PixelI32 {
     }
   }
 
-  fn clear_rnd(&mut self) {
+  pub fn clear_rnd(&mut self) {
 
     let mut rng = thread_rng();
     let dist = Normal::<f64>::new(125.0, 10.0).unwrap();
@@ -52,17 +52,14 @@ impl PixelI32 {
   
   }
 
-  fn width(&self) -> i32 { self.pixel.width() as i32 }
-  fn height(&self) -> i32 { self.pixel.height() as i32 }
+  pub fn width(&self) -> i32 { self.pixel.width() as i32 }
+  pub fn height(&self) -> i32 { self.pixel.height() as i32 }
 
-  fn get_c_v(&self) -> Vec<i32> { self.pixel.get_array().clone().to_vec() }
-  fn get_c_x(&self) -> Vec<i32> { self.index_x.clone() }
-  fn get_c_y(&self) -> Vec<i32> { self.index_y.clone() }
+  pub fn get_c_v(&self) -> Vec<i32> { self.pixel.get_array().clone().to_vec() }
+  pub fn get_c_x(&self) -> Vec<i32> { self.index_x.clone() }
+  pub fn get_c_y(&self) -> Vec<i32> { self.index_y.clone() }
 
 }
-
-
-
 
 
 
