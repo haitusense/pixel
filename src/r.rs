@@ -3,6 +3,10 @@ use pixel_proc::dummy as extendr;
 #[cfg(feature="rpixel")]
 use extendr_api::prelude::*;
 
+use super::*;
+use rand::prelude::{Distribution, thread_rng};
+use rand_distr::Normal;
+
 #[extendr]
 pub fn rpixel_hello() -> &'static str {
   "Hello rpixel!"
