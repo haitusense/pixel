@@ -15,3 +15,6 @@ rpixel = ["extendr-api"]
 [dependencies]
 pixel_proc = { path = "./pixel_proc" }
 extendr-api = { optional = true, version = "*" }
+
+rand = '*'
+rand_distr = '*'
