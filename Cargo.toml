@@ -24,3 +24,5 @@ num-traits = "*"
 num-derive = "*"
 
 anyhow = "*"
+serde = "*"
+serde_yaml = "*" # yaml-rust = "0.4.5"

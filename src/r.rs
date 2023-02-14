@@ -62,18 +62,45 @@ impl PixelI32 {
     dst 
   }
 
-  pub fn read_file(&mut self, path: &str, _option: &str) {	
+  pub fn read_file(&mut self, path: &str, option: &str) {	
     let path = PathBuf::from(path);
+    match option {
+      "sync" => {
+        self.read_file_sync(path);
+      },
+      _=>{
+        self.read_file_nomal(path);
+      }
+    }
+  }
+
+  fn read_file_nomal(&mut self, path: PathBuf) {
     let src = binfile_to_u8(path).unwrap();
     let offset = 64usize;
-
     for i in 0..self.pixel.size() {
       let buf = [src[offset + i*2+1], src[offset + i*2], 0, 0];
       self.pixel[i] = i32::from_ne_bytes(buf);
     }
-
   }
-    
+
+  fn read_file_sync(&mut self, path: PathBuf) {
+    let sync = "
+    sof : 0b_11111111111111_00000000000000_00000000000000_10101011000000
+    sol : 0b_11111111111111_00000000000000_00000000000000_10000000000000
+    eof : 0b_11111111111111_00000000000000_00000000000000_10110110000000
+    eol : 0b_11111111111111_00000000000000_00000000000000_10011101000000
+    mask : 0b11111111111111111111111111111111111111111111111111111111
+    trainingcode : 0b_00011100001111
+    depth : 14
+    width : 334
+    height : 2072
+    ";
+		let vec = syncfile_to_i32(path, sync, 0).unwrap();
+    for i in 0..self.pixel.size() {
+      self.pixel[i] = vec[i];
+    }
+  }
+
 }
 
 
