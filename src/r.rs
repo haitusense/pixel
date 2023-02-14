@@ -62,7 +62,7 @@ impl PixelI32 {
     dst 
   }
 
-  pub fn read_file(&mut self, path: &str, option: &str) {	
+  pub fn read_file(&mut self, path: &str, _option: &str) {	
     let path = PathBuf::from(path);
     let src = binfile_to_u8(path).unwrap();
     let offset = 64usize;
