@@ -63,7 +63,6 @@ impl PixelI32 {
   }
 
   pub fn read_file(&mut self, path: &str, option: &str) {	
-    let path = PathBuf::from(path);
     match option {
       "sync" => {
         self.read_file_sync(path);
@@ -74,7 +73,8 @@ impl PixelI32 {
     }
   }
 
-  fn read_file_nomal(&mut self, path: PathBuf) {
+  fn read_file_nomal(&mut self, path: &str) {
+    let path = PathBuf::from(path);
     let src = binfile_to_u8(path).unwrap();
     let offset = 64usize;
     for i in 0..self.pixel.size() {
@@ -83,7 +83,8 @@ impl PixelI32 {
     }
   }
 
-  fn read_file_sync(&mut self, path: PathBuf) {
+  fn read_file_sync(&mut self, path: &str) {
+    let path = PathBuf::from(path);
     let sync = "
     sof : 0b_11111111111111_00000000000000_00000000000000_10101011000000
     sol : 0b_11111111111111_00000000000000_00000000000000_10000000000000
