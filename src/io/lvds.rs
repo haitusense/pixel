@@ -19,7 +19,7 @@ pub struct SyncCode{
 	pub trainingcode:u64,
 	pub width:u32,
 	pub height:u32,
-	pub frame:usize,
+	pub skipframe:usize,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -52,6 +52,7 @@ impl SyncCode {
 		println!("mask    {:0>1$b}", self.sync_mask, 64);
 		println!("TC      {:0>1$b}", self.trainingcode, 64);
 		println!("TC mask {:0>1$b}", self.pixel_mask, 64);
+		println!("skip frame {}", self.skipframe);
 	}
 }
 
@@ -100,13 +101,13 @@ pub fn create_index(src:&[u8], sync: SyncCode, _stride:usize, _depth:usize) -> R
 }
 
 
-pub fn sync_to_pix(src:&[u8], sync: SyncCode, skipframe:usize) -> Result<Vec::<i32>> {
+pub fn sync_to_pix(src:&[u8], sync: SyncCode) -> Result<Vec::<i32>> {
 	let width = sync.width as usize;
 	let height = sync.height as usize;
 	
 	let mut dst = vec![0i32;width * height];
 
-	let (mut x_count, mut line_index, mut sof_count) = (0usize, 0usize, (skipframe + 1) as i32);
+	let (mut x_count, mut line_index, mut sof_count) = (0usize, 0usize, (sync.skipframe + 1) as i32);
 
   for index in 0..src.len() * 8 {
 
@@ -183,12 +184,12 @@ pub fn yml_to_sync(src:&str) -> Result<SyncCode> {
   let pixel_depth = value["depth"].as_u64().context("key 'depth' not found in yaml")? as usize;
 	let pixel_mask = 2u64.pow(pixel_depth as u32) - 1u64;
 
-	let frame = match value["frame"].as_u64() {
+	let skipframe = match value["skipframe"].as_u64() {
 		Some(n) => n as usize,
 		None => 0
 	};
 
-	Ok(SyncCode { sof, sol, eof, eol, sync_mask, pixel_depth, pixel_mask, trainingcode, width, height, frame})
+	Ok(SyncCode { sof, sol, eof, eol, sync_mask, pixel_depth, pixel_mask, trainingcode, width, height, skipframe})
 }
 
 
@@ -208,6 +209,7 @@ mod tests {
     depth : 14
     width : 334
     height : 2072
+    skipframe : 1
     ";
 
     let hoge = yml_to_sync(src)?;

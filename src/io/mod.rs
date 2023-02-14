@@ -25,12 +25,12 @@ pub fn binfile_to_u8(path:PathBuf) -> Result<Vec<u8>> {
   Ok(src)
 }
 
-pub fn syncfile_to_i32(path:PathBuf, sync: &str, skipframe:usize) -> Result<Vec<i32>> {
+pub fn syncfile_to_i32(path:PathBuf, sync: &str) -> Result<Vec<i32>> {
   let mut src = Vec::new();
   let mut file = File::open(path)?;
   let _ = file.read_to_end(&mut src).context("read file err")?;
   let sync = lvds::yml_to_sync(sync)?;
-  lvds::sync_to_pix(&src[..], sync, skipframe)
+  lvds::sync_to_pix(&src[..], sync)
 }
 
 
@@ -68,9 +68,10 @@ mod tests {
     depth : 14
     width : 334
     height : 2072
+    skipframe : 0
     ";
     let path = PathBuf::from("../50a/Ch0.bin");
-		let a = syncfile_to_i32(path, sync, 2).unwrap();
+		let a = syncfile_to_i32(path, sync).unwrap();
     println!("{:?}", a[7]);
 		println!("{:?}", a[8]);
 		println!("{:?}", a[9]);
