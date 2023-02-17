@@ -40,27 +40,38 @@ impl PixelI32 {
 
   pub fn get_vec(&self) -> Vec<i32> { self.pixel.get_array().clone().to_vec() }
   
-  pub fn get_index_x(&self) -> Vec<i32> {
+  pub fn get_index(&self, option: &str) -> Vec<i32> {
     let mut dst = vec![0i32; self.pixel.size()];
-    for y in 0..self.pixel.height() {
-      for x in 0..self.pixel.width() {
-        let index = x + y * self.pixel.width();
-        dst[index] = x as i32;
+    match option {
+      "x" => {
+        for y in 0..self.pixel.height() {
+          for x in 0..self.pixel.width() {
+            let index = x + y * self.pixel.width();
+            dst[index] = x as i32;
+          }
+        }
+      },
+      "y" => {
+        for y in 0..self.pixel.height() {
+          for x in 0..self.pixel.width() {
+            let index = x + y * self.pixel.width();
+            dst[index] = y as i32;
+          }
+        }
+      },
+      "c" => {
+        for y in 0..self.pixel.height() {
+          for x in 0..self.pixel.width() {
+            let index = x + y * self.pixel.width();
+            dst[index] = (x % 2 + (y % 2) * 2)  as i32;
+          }
+        }
       }
+      _=>{ }
     }
     dst 
   }
   
-  pub fn get_index_y(&self) -> Vec<i32> {
-    let mut dst = vec![0i32; self.pixel.size()];
-    for y in 0..self.pixel.height() {
-      for x in 0..self.pixel.width() {
-        let index = x + y * self.pixel.width();
-        dst[index] = y as i32;
-      }
-    }
-    dst 
-  }
 
   pub fn read_file(&mut self, path: &str) {
     let path = PathBuf::from(path);
