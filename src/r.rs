@@ -59,7 +59,23 @@ impl PixelI32 {
           }
         }
       },
-      "c" => {
+      "cimg_x" => {
+        for y in 0..self.pixel.height() {
+          for x in 0..self.pixel.width() {
+            let index = x + y * self.pixel.width();
+            dst[index] = (x + 1) as i32;
+          }
+        }
+      },
+      "cimg_y" => {
+        for y in 0..self.pixel.height() {
+          for x in 0..self.pixel.width() {
+            let index = x + y * self.pixel.width();
+            dst[index] = (y + 1) as i32;
+          }
+        }
+      },
+      "bayer" => {
         for y in 0..self.pixel.height() {
           for x in 0..self.pixel.width() {
             let index = x + y * self.pixel.width();
