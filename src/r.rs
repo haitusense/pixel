@@ -111,6 +111,7 @@ impl PixelI32 {
 
 }
 
+
 #[derive(Debug)]
 pub struct RpxLog{
   src: String,
@@ -126,12 +127,13 @@ impl RpxLog {
     }
   }
 
-  pub fn write_csv(&self, path: &str, kind: &str) {
+  pub fn write(&self, path: &str, kind: &str) {
     let mut df = log::logheader_to_df(&self.src).unwrap();
     df.rpx_write(path, kind);
   }
   
 }
+
 
 #[cfg(feature="rpixel")]
 extendr_module! {
