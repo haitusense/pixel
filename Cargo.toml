@@ -26,3 +26,6 @@ num-derive = "*"
 anyhow = "*"
 serde = "*"
 serde_yaml = "*" # yaml-rust = "0.4.5"
+
+regex = "1.7.1"
+polars = { version = "0.27.2", features = ["lazy", "parquet", "diagonal_concat", "horizontal_concat"] }

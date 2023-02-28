@@ -22,6 +22,7 @@ pub struct SyncCode{
 	pub skipframe:usize,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 pub enum SyncType {
 	SOF(SyncCnt),
@@ -30,6 +31,7 @@ pub enum SyncType {
 	EOL(SyncCnt)
 }
 
+#[allow(dead_code)]
 impl SyncCode {
   pub fn setdepth(&mut self, val: u32) {
 		self.pixel_depth = val as usize;
@@ -56,6 +58,7 @@ impl SyncCode {
 	}
 }
 
+#[allow(dead_code)]
 #[derive(Default, Debug, Copy, Clone)]
 pub struct SyncCnt{
 	sof: usize,
@@ -64,7 +67,7 @@ pub struct SyncCnt{
 	eol: usize
 }
 
-
+#[allow(dead_code)]
 pub fn create_index(src:&[u8], sync: SyncCode, _stride:usize, _depth:usize) -> Result<HashMap::<usize, SyncType>> {
 	let mut dst = HashMap::<usize, SyncType>::new();
 	let mut c = SyncCnt::default();

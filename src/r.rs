@@ -3,6 +3,8 @@ use pixel_proc::dummy as extendr;
 #[cfg(feature="rpixel")]
 use extendr_api::prelude::*;
 
+use crate::log::Rpx;
+
 use super::*;
 use rand::prelude::{Distribution, thread_rng};
 use rand_distr::Normal;
@@ -109,11 +111,33 @@ impl PixelI32 {
 
 }
 
+#[derive(Debug)]
+pub struct RpxLog{
+  src: String,
+}
+
+#[allow(dead_code)]
+#[extendr]
+impl RpxLog {
+
+  pub fn new(path: &str) -> Self {
+    Self {
+      src: log::read_logfile(path).unwrap(),
+    }
+  }
+
+  pub fn write_csv(&self, path: &str, kind: &str) {
+    let mut df = log::logheader_to_df(&self.src).unwrap();
+    df.rpx_write(path, kind);
+  }
+  
+}
 
 #[cfg(feature="rpixel")]
 extendr_module! {
   mod pixel;
   impl PixelI32;
+  impl RpxLog;
 }
 
 
@@ -123,6 +147,8 @@ mod tests {
 
   #[test]
   fn it_works() {
-
+    let a = PixelI32::new(4,4);
+    let b = a.get_index("bayer");
+    println!("{:?}",b);
   }
 }
