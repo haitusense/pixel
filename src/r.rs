@@ -3,7 +3,7 @@ use pixel_proc::dummy as extendr;
 #[cfg(feature="rpixel")]
 use extendr_api::prelude::*;
 
-use crate::log::Rpx;
+// use crate::log::Rpx;
 
 use super::*;
 use rand::prelude::{Distribution, thread_rng};

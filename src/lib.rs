@@ -4,7 +4,7 @@ pub use r::*;
 pub mod io;
 pub use io::*;
 
-pub mod log;
+// pub mod log;
 
 pub fn type_of<T>(_: T) -> String {
   let a = std::any::type_name::<T>();
