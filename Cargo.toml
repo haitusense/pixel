@@ -11,6 +11,7 @@ crate-type = ["rlib", "cdylib"]
 [features]
 default = []
 rpixel = ["extendr-api"]
+# use_polars = ["polars"]
 
 [dependencies]
 pixel_proc = { path = "./pixel_proc" }
@@ -28,4 +29,8 @@ serde = "*"
 serde_yaml = "*" # yaml-rust = "0.4.5"
 
 regex = "1.7.1"
-# polars = { version = "0.27.2", features = ["lazy", "parquet", "diagonal_concat", "horizontal_concat"] }
+
+# str-concat = "0.2.0"
+polars = { version = "0.27.2", features = ["diagonal_concat", "horizontal_concat"] }
+# polars = { optional = true, version = "0.27.2", features = ["parquet", "lazy", "diagonal_concat", "horizontal_concat"] }
+

@@ -11,13 +11,19 @@ use std::path::{ PathBuf}; //Path,
 use regex::Regex;
 // use regex::Captures;
 
-use polars::prelude::*;
+pub mod unit;
+#[cfg(feature="use_polars")]
+mod use_polars;
+
+
 
 static RE_HEADERS: &str = r"
 \[Header\]
 [\s\S]+?
 TCNT#";
+
 static RE_HEADER: &str = r"\s*([ \S]+)=([ \S]*)\s*";
+
 static RE_BODY: &str = r"
 \s*TCNT# ([0-9]+) *SITE# ([0-9]+)
 \s*([\s\S]+?)
@@ -25,6 +31,11 @@ static RE_BODY: &str = r"
 \s*Site   Fail   Total    Cate   Bin    XCoord   YCoord         TestTime\(([.0-9]+)([a-zA-Z]+)\)
 \s*-------------------   ------------
 \s*([ 0-9]+)";
+
+static RE_TEST: &str = r"
+\s*[0-9]+ *[0-9]+ *[A-Z]+ *([^\s]+) +([^\s]+) +([\-.0-9]+ *[a-zA-Z]*?) *[\-.0-9]+[ a-zA-Z]+
+";
+
 
 pub fn read_logfile(path:&str) -> Result<String> {
   let path = PathBuf::from(path);
@@ -36,95 +47,99 @@ pub fn read_logfile(path:&str) -> Result<String> {
   Ok(src)
 }
 
-pub fn logheader_to_df(src:&String) -> Result<DataFrame> {
-  let mut df = DataFrame::default();
+
+pub fn logheader_to_vec(src:&String) -> Result<(Vec<&str>, Vec<&str>)> {
 
   let re = Regex::new(RE_HEADERS.replace("\n", "").as_str()).unwrap();
   let dst = re.captures(src.as_str()).context("caps err")?;
   let body = dst.get(0).unwrap().as_str();
-
+  
   let re = Regex::new(RE_HEADER.replace("\n", "").as_str()).unwrap();
+
+  let mut vec_key = Vec::<&str>::default();
+  let mut vec_value = Vec::<&str>::default();
+
   for caps in re.captures_iter(body) {
     let key = caps.get(1).unwrap().as_str();
     let val = caps.get(2).unwrap().as_str();
-    let s = Series::new(key, vec![val]);
-    // println!("{caps:?}");
-    df = df
-      .lazy()
-      .with_columns(vec![s.lit()])
-      .collect()
-      .unwrap();
-  }
 
-  Ok(df)
+    vec_key.push(key);
+    vec_value.push(val);  
+  }
+  Ok((vec_key,vec_value))
 }
 
-pub fn logbody_to_df(src:&String) -> Result<DataFrame> {
-  let mut df = DataFrame::default();
+#[derive(Debug)]
+pub struct LogBody<'a> {
+  pub tcnt : Vec<i32>,
+  pub site : Vec<i32>,
+  pub test_index : Vec<i32>,
+  pub key : Vec<&'a str>,
+  pub signal : Vec<&'a str>,
+  pub value : Vec<&'a str>,
+}
+
+impl<'a> LogBody<'a> {
+  fn new() -> Self {
+    Self {
+      tcnt : Vec::<i32>::default(),
+      site : Vec::<i32>::default(),
+      test_index: Vec::<i32>::default(),
+      key : Vec::<&str>::default(),
+      signal : Vec::<&str>::default(),
+      value : Vec::<&str>::default()
+    }
+  }
+
+  fn add(&mut self, tcnt:i32, site:i32, index:i32, key:&'a str, signal:&'a str, value:&'a str) {
+    self.tcnt.push(tcnt);
+    self.site.push(site);
+    self.test_index.push(index);
+    self.key.push(key);
+    self.signal.push(signal);
+    self.value.push(value);
+  }
+}
+
+pub fn logbody_to_vec(src:&String) -> Result<LogBody> {
+
+  let mut dst = LogBody::new();
 
   let re = Regex::new(RE_BODY.replace("\n", "").as_str()).unwrap();
   for caps in re.captures_iter(src.as_str()) {
-    let tcnt = caps.get(1).unwrap().as_str();
-    let site = caps.get(2).unwrap().as_str();
+    let tcnt = caps.get(1).unwrap().as_str().parse().unwrap();
+    let site = caps.get(2).unwrap().as_str().parse().unwrap();
     let body = caps.get(3).unwrap().as_str();
     let testtime = caps.get(4).unwrap().as_str();
     let t_unit = caps.get(5).unwrap().as_str();
     let result = caps.get(6).unwrap().as_str();
-    // println!("c : {tcnt} s : {site} t : {testtime} {t_unit} result : {result}");
-    df = df
-      .lazy()
-      .with_columns( vec![
-        lit(tcnt).alias("tcnt"),
-        lit(site).alias("site"),
-        lit(body).alias("body"),
-        lit(testtime).alias("testtime"),
-        lit(t_unit).alias("t_unit"),
-        lit(result).alias("result")
-      ])
-      .collect()
-      .unwrap();
-  }
 
-  Ok(df)
-}
+    dst.add(tcnt, site, 0, "testtime", "", testtime);
+    dst.add(tcnt, site, 0, "t_unit", "",t_unit);
 
-pub trait Rpx {
-  fn rpx_write(&mut self, path:&str, kind:&str);
-}
+    let buf = result.split_whitespace().collect::<Vec<_>>();
+    dst.add(tcnt, site, 0, "Site", "",*buf.get(0).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "Fail", "",*buf.get(1).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "Total", "",*buf.get(2).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "Cate", "",*buf.get(3).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "Bin", "",*buf.get(4).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "XCoord", "",*buf.get(5).unwrap_or_else(|| &""));
+    dst.add(tcnt, site, 0, "YCoord", "",*buf.get(6).unwrap_or_else(|| &""));
 
-impl Rpx for DataFrame {
-  fn rpx_write(&mut self, path:&str, kind:&str) {
-    match kind{
-      "csv" => {
-        let mut file = std::fs::File::create(path).unwrap();
-        CsvWriter::new(&mut file).finish(self).unwrap();
-      },
-      "parquet" =>{
-        let mut file = std::fs::File::create(path).unwrap();
-        ParquetWriter::new(&mut file).finish(self).unwrap();
-      },
-      _ =>{
-      }
+    let mut index = 0i32; 
+    let re = Regex::new(RE_TEST.replace("\n", "").as_str()).unwrap();
+    for caps2 in re.captures_iter(body) {
+      index += 1;
+      dst.add(tcnt, site, index,
+        caps2.get(1).unwrap().as_str(),
+        caps2.get(2).unwrap().as_str(),
+        caps2.get(3).unwrap().as_str());
     }
   }
+
+  Ok(dst)
 }
 
-// pub fn to_csv(df: DataFrame) -> Result<String> {
-//   // let mut buf = vec![];
-//   // {
-//   //   let mut f = BufWriter::new(&mut buf);
-//   //   CsvWriter::new(&mut f).finish(&mut df).unwrap();
-//   // }
-//   // let dst = buf.iter().map(|&s| s as char).collect::<String>();
-//   // println!("{}",dst);
-  
-//   let mut f = BufWriter::new(Vec::new());
-//   CsvWriter::new(&mut f).finish(&mut df).unwrap();
-//   let bytes = f.into_inner()?;
-//   let dst = String::from_utf8(bytes)?;
-//   // let dst = str::from_utf8(&bytes).unwrap();
-//   Ok(dst)
-// }
 
 #[cfg(test)]
 mod tests {
@@ -134,14 +149,8 @@ mod tests {
   fn it_works1() -> Result<()> {
     let src = read_logfile("../dummy.txt")?;
 
-    let df1 = logheader_to_df(&src)?;
-    println!("{df1:?}");
-
-    let df2 = logbody_to_df(&src)?;
-    println!("{df2:?}");
-
-    // let dst = df1.join(&df2, [], ["Name"], JoinType::Inner, None).unwrap();
-   
+    let df = logheader_to_vec(&src)?;
+    println!("{df:?}");
 
     Ok(())
   }
@@ -149,127 +158,44 @@ mod tests {
   #[test]
   fn it_works2() -> Result<()> {
     let src = read_logfile("../dummy.txt")?;
-    let mut df = logbody_to_df(&src)?;
-    println!("{df:?}");
-    
-    df.rpx_write("temp.csv", "csv");
-    df.rpx_write("temp.parquet", "parquet");
 
-    Ok(())
-  }
+    let df = logbody_to_vec(&src)?;
 
-  #[test]
-  fn it_works_df() -> Result<()> {
-    let mut df = df!(
-      "A" => &["a", "b", "a"],
-      "B" => &[1, 3, 5],
-      "C" => &[10, 11, 12],
-      "D" => &[2, 4, 6]
-    )?;
-    println!("{df:?}");
-    Ok(())
-  }
-
-  #[test]
-  fn it_works_df2() -> Result<()> {
-    let mut df1: DataFrame = df!(
-      "Fruit" => &["Apple", "Banana", "Pear"],
-      "Origin" => &["America", "Hawai", "Italy"],
-      "Phosphorus (mg/100g)" => &[11, 22, 12]).unwrap();
-    let df2: DataFrame = df!(
-      "Name" => &["Apple", "Banana", "Pear"],
-      "Origin" => &["France", "Hawai", "Italy"],
-      "Potassium (mg/100g)" => &[107, 358, 115]).unwrap();
-    
-    let dst = df1.join(&df2, ["Fruit"], ["Name"], JoinType::Inner, None).unwrap();
-    println!("{dst:?}");
-
-    // let dst2 = df1.join(&df2, ["Fruit"], ["Name"], JoinType::Left, None).unwrap();
-    // println!("{dst2:?}");
-
-
-    let _ = df1.extend(&df2).unwrap();
-    println!("{df1:?}");
-
-    Ok(())
-  }
-
-  #[test]
-  fn it_works_df3() -> Result<()> {
-    let df1: DataFrame = df!(
-      "F" => &["Apple"],
-      "O" => &["America"],
-    ).unwrap();
-    let df2: DataFrame = df!(
-      "Name" => &["Apple", "Banana", "Pear"],
-      "Origin" => &["France", "Hawai", "Italy"],
-      "Potassium (mg/100g)" => &[107, 358, 115]
-    ).unwrap();
-    
-    // let a = df1.lazy();
-    // let b = df2.lazy();
-    // pl.concat([df_1,df_2]) 新しい単一のロケーションにコピー
-    // df_1.vstack(df_2) コピーなしでリンク的に接続（メモリ上は分離のまま）
-    // df_1.extend(df_2) df_2をコピーしてdf_1にappend
-
-    // let dst = df1.vstack(&df2).unwrap();
-    // let dst = concat([a, b], false, false)
-    //   .unwrap()
-    //   .collect()
-    //   .unwrap();
-
-    // let dst = polars::functions::diag_concat_df(&[df1,df2]).unwrap();
-    // println!("{dst:?}");
-
-    let dst = polars::functions::hor_concat_df(&[df1,df2]).unwrap();
-    println!("{dst:?}");
-
-    Ok(())
-  }
-
-  #[test]
-  // fn it_works_df4() -> Result<()> {
-  //   let df1: DataFrame = df!(
-  //     "A" => &["AA"],
-  //     "B" => &["BB"],
-  //   ).unwrap();
-  //   let mut df2: DataFrame = df!(
-  //     "C" => &[1, 2, 3],
-  //     "D" => &[4, 5, 6],
-  //     "E" => &[107, 358, 115]
-  //   ).unwrap();
-
-  //   let dst = df2.with_column_and_schema(df1.columns(names)).unwrap();
-
-
-  //   println!("{dst:?}");
-
-  //   Ok(())
-  // }
-
-
-  fn it_works_df4() -> Result<()> {
-    let df1: DataFrame = df!(
-      "A" => &["AA"],
-      "B" => &["BB"],
-    ).unwrap();
-    let mut df2: DataFrame = df!(
-      "C" => &[1, 2, 3],
-      "D" => &[4, 5, 6],
-      "E" => &[107, 358, 115]
-    ).unwrap();
-    // LazyFrame::sink_parquet(self, path, options)
-
-    let df = LazyFrame::scan_parquet("../datasets/foods1.parquet", ScanArgsParquet::default())?
-    .select([
-        all(),
-        cols(["fats_g", "sugars_g"]).sum().suffix("_summed"),
-    ])
-    .collect()?;
     println!("{df:?}");
 
     Ok(())
   }
 
+  #[test]
+  fn it_works3() -> Result<()> {
+    let src = "   0      1       2       1     1       5       1";
+
+    let a = src.split_whitespace().collect::<Vec<_>>();
+    println!("{a:?}");
+    let _b = a[0];
+    let _c = a[1];
+    let d = *a.get(8).unwrap_or_else(|| &"no");
+    println!("{d:?}");
+
+    let v: Vec<&str> = src.matches(r"1").collect();
+    println!("{v:?}");
+
+    let s = String::from("rust string sample program rust i like rust");
+    let v: Vec<_> = s.match_indices("rust").collect();
+    println!("{v:?}");
+
+    Ok(())
+  }
+
+  #[test]
+  fn it_works4() -> Result<()> {
+    let i = 10usize;
+    let v2 = vec![0i32; i]
+      .into_iter().enumerate()
+      .map(|(i, _n)| i as i32)
+      .collect::<Vec<_>>();
+    println!("{v2:?}");
+    Ok(())
+  }
 
 }
